@@ -1,0 +1,1 @@
+# Invariant-Farid-Quantum-Command-Unit-and-Multi-Component-Redshift-in-the-TQTU-Framework
