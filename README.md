@@ -633,6 +633,76 @@ References
 6. XRISM Science Data Center / HEASARC. Resolve Instrument Performance and Data Analysis Guide. Resolve provides approximately \(4.5\) eV FWHM high-resolution performance near 6 keV, with sub-eV energy-scale accuracy in much of the Fe-K band.
 
 7. Chowdhury, M. F. I. Tanfarid Quantum Thermodynamic Universe (TQTU) and the Farid Quantum Command Unit. TQTU foundational research framework.
+8. import numpy as np
+import matplotlib.pyplot as plt
+
+# 1. Fundamental Constants & FQCU Baseline (TQTU Postulates)
+h = 6.62607015e-34  # J*s
+nu_0 = 1e12        # 1 THz Calibration Frequency (Hz)
+E_FQCU = h * nu_0  # ~4.136 meV
+
+# Fe XXVI Lyman-alpha laboratory rest energy (~6.97 keV)
+E_0 = 6973.0       # eV 
+
+# 2. Simulation Grid (Cylindrical Coordinates along the Photon Path)
+# Parameter lambda running from 0 to Lambda (outer boundary of accretion column)
+Lambda = 1e6       # m (Path length through plasma cloud)
+steps = 1000
+l_space = np.linspace(0, Lambda, steps)
+dl = Lambda / steps
+
+# 3. Modeled Physical Environment (BP Crucis / GX 301-2 Accretion Column)
+# Synthetic profiles for Electron Density (n_e) and Temperature (T_e)
+n_star = 1e12      # Reference scale (m^-3)
+T_star = 1e7       # Reference scale (K)
+
+n_e = 1e14 * np.exp(-l_space / (0.3 * Lambda))  # Infalling plasma density profile
+T_e = 1e8 * np.exp(-l_space / (0.5 * Lambda))   # Plasma temperature profile
+
+# 4. TQTU Specific Parameters (Preregistered Coupling Constraints)
+A_P = 1.5e-22      # Dimensionless TQTU plasma coupling factor
+L_star = 1.0       # m
+kappa_S = 1.2e-3   # K*m^3/J (Entropy coupling constant)
+
+# Simulating an asymmetric radial entropy gradient \partial s / \partial r
+# Case A: Normal flow, Case B: Disk Reversal phase (Inverted Gradient)
+ds_dr_normal = -5e-9 * (1 - l_space / Lambda)   # Entropy density gradient (J/K/m^4)
+ds_dr_reverse = 5e-9 * (1 - l_space / Lambda)    # Sign inversion during reversal
+
+# Ray geometry components (purely radial dominance test case)
+k_r = 1.0 
+
+# 5. Numerical Integration of the TQTU Propagation Depth (\tau_TQTU)
+tau_P_integrand = (A_P / L_star) * (n_e / n_star) * np.sqrt(T_e / T_star)
+tau_S_integrand_normal = kappa_S * k_r * ds_dr_normal
+tau_S_integrand_reverse = kappa_S * k_r * ds_dr_reverse
+
+tau_TQTU_normal = np.sum((tau_P_integrand + tau_S_integrand_normal) * dl)
+tau_TQTU_reverse = np.sum((tau_P_integrand + tau_S_integrand_reverse) * dl)
+
+# 6. Standard Conventional Baseline (Doppler shift: ~150 km/s inflow)
+v_LOS = 150e3      # m/s
+c = 3e8            # m/s
+z_std = v_LOS / c  # Standard Doppler fraction
+
+E_std = E_0 / (1.0 + z_std)
+
+# 7. Final TQTU Shift Predictions
+E_obs_normal = E_std * np.exp(-tau_TQTU_normal)
+E_obs_reverse = E_std * np.exp(-tau_TQTU_reverse)
+
+# Calculate in FQCU counts
+N_em = E_0 / (E_FQCU / 1.60218e-19) # Convert FQCU to eV
+N_obs_normal = E_obs_normal / (E_FQCU / 1.60218e-19)
+N_obs_reverse = E_obs_reverse / (E_FQCU / 1.60218e-19)
+
+# 8. Output Reporting
+print(f"--- TQTU Test Suite Simulation Results ---")
+print(f"Emitted Energy: {E_0:.2f} eV ({N_em:.2f} FQCU)")
+print(f"Standard Model Shifted Energy: {E_std:.2f} eV")
+print(f"TQTU Normal Phase Obs Energy: {E_obs_normal:.2f} eV (ΔE_TQTU: {E_std - E_obs_normal:.4f} eV)")
+print(f"TQTU Reversal Phase Obs Energy: {E_obs_reverse:.2f} eV (ΔE_TQTU: {E_std - E_obs_reverse:.4f} eV)")
+
 
 Suggested citation
 
